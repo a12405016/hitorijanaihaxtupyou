@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ひとりじゃない発表</title>
+  <link rel="icon" href="img/a-chan.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===================== 準備画面 ===================== -->
+  <main id="setup" class="frame">
+    <div class="paper">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">発表者の手元にだけ、ちいさな味方を。</p>
+          <h1>ひとりじゃない発表</h1>
+          <p class="lead">前に立つのは、ひとり。それでも、あなたはひとりじゃない。</p>
+        </div>
+        <div class="hero-buddy">
+          <div class="bubble">いっしょにがんばろう！</div>
+          <img id="setup-chara" src="img/a-chan.svg" alt="">
+        </div>
+      </header>
+
+      <section class="card">
+        <h2><span class="num">1</span>スライドを読みこむ</h2>
+        <p class="hint">PowerPointやFigmaから<b>PDFで書き出したファイル</b>を選んでください。並べ替え・非表示・自分だけのメモができます。</p>
+        <div class="btn-row">
+          <label class="btn primary">PDFを選ぶ<input type="file" id="pdf-input" accept="application/pdf" hidden></label>
+          <span id="pdf-name" class="muted"></span>
+        </div>
+        <ol id="slide-list" class="slide-list"></ol>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">2</span>応援キャラを選ぶ</h2>
+        <div class="chara-row">
+          <img id="chara-preview" src="img/a-chan.svg" alt="選んだキャラクター">
+          <div class="chara-form">
+            <label class="field">なまえ <input id="chara-name" value="Aちゃん" maxlength="12"></label>
+            <div class="btn-row">
+              <label class="btn">好きな画像にする<input type="file" id="chara-input" accept="image/*" hidden></label>
+              <button class="btn ghost" id="chara-reset" type="button">Aちゃんにもどす</button>
+            </div>
+            <p class="hint">背景が透明なPNGがおすすめです。選んだキャラはこのブラウザに保存されます。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">3</span>応援の準備</h2>
+        <div class="ai-box">
+          <label class="field model-field" id="model-field" hidden>AIの大きさ <select id="ai-model"></select></label>
+          <p id="ai-status" class="ai-status">確認しています…</p>
+          <div class="progress"><div id="ai-progress"></div></div>
+          <button class="btn" id="ai-load" type="button" hidden>AIをダウンロード（初回のみ・約1GB）</button>
+        </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="opt-mic" checked> マイクで声の様子を見る（沈黙・声のゆれ）</label>
+          <label class="check"><input type="checkbox" id="opt-speech" checked> 話す速さと「えーと」を数える<small>音声はChromeの音声認識サービスに送られます</small></label>
+          <label class="check"><input type="checkbox" id="opt-cam" checked> カメラで目線を見る<small>映像はこのパソコンの中だけで処理し、保存も送信もしません</small></label>
+        </div>
+      </section>
+
+      <section class="card start-card">
+        <p class="hint">はじめる前に、Macの「システム設定 → ディスプレイ」でプロジェクターを<b>拡張表示</b>（ミラーリングしない）にしておきます。</p>
+        <button class="btn start" id="start" type="button" disabled>発表をはじめる</button>
+        <p class="muted small">スライドを読みこむと押せるようになります。</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================== 発表者画面（手元） ===================== -->
+  <main id="presenter" class="presenter" hidden>
+    <div class="stage" id="stage"><canvas id="cur"></canvas></div>
+
+    <aside class="side">
+      <div class="top-row">
+        <div id="timer" class="timer">00:00</div>
+        <div id="page-no" class="page-no"></div>
+      </div>
+
+      <p class="label">つぎのスライド</p>
+      <div class="next-box">
+        <canvas id="next"></canvas>
+        <p id="next-end" class="next-end" hidden>これが最後のスライド</p>
+      </div>
+
+      <p class="label">メモ</p>
+      <div id="memo" class="memo"></div>
+
+      <div class="ctrl-row">
+        <button class="btn" id="prev" type="button">← まえ</button>
+        <button class="btn primary" id="go-next" type="button">つぎ →</button>
+      </div>
+      <div class="ctrl-row small-btns">
+        <button class="btn ghost" id="reopen" type="button">聴衆用の画面</button>
+        <button class="btn ghost" id="sensor-toggle" type="button">センサー</button>
+        <button class="btn ghost" id="end" type="button">おわる</button>
+      </div>
+      <pre id="sensor" class="sensor" hidden></pre>
+    </aside>
+
+    <div class="buddy" id="buddy">
+      <div id="bubble" class="bubble hide"></div>
+      <img id="chara" alt="">
+    </div>
+    <video id="cam" playsinline muted hidden></video>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

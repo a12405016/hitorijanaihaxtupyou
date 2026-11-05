@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" role="img" aria-label="Aちゃん">
+  <!-- 耳 -->
+  <path d="M52 78 C30 40 34 14 50 10 C66 8 78 40 84 64 Z" fill="#fff" stroke="#1a1a1a" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M148 78 C170 40 166 14 150 10 C134 8 122 40 116 64 Z" fill="#fff" stroke="#1a1a1a" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M56 60 C48 40 50 26 56 24 C62 24 68 40 72 56 Z" fill="#ffd9e4"/>
+  <path d="M144 60 C152 40 150 26 144 24 C138 24 132 40 128 56 Z" fill="#ffd9e4"/>
+  <!-- からだ -->
+  <path d="M100 52 C150 52 178 90 178 136 C178 184 146 206 100 206 C54 206 22 184 22 136 C22 90 50 52 100 52 Z" fill="#fff" stroke="#1a1a1a" stroke-width="5"/>
+  <!-- 前髪のくるん -->
+  <path d="M92 56 C90 42 104 38 108 46 C112 54 100 58 98 50" fill="none" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+  <!-- 目 -->
+  <ellipse cx="74" cy="122" rx="11" ry="14" fill="#1a1a1a"/>
+  <ellipse cx="126" cy="122" rx="11" ry="14" fill="#1a1a1a"/>
+  <circle cx="78" cy="116" r="4" fill="#fff"/>
+  <circle cx="130" cy="116" r="4" fill="#fff"/>
+  <!-- ほっぺ -->
+  <ellipse cx="54" cy="146" rx="12" ry="7" fill="#ffb3c7"/>
+  <ellipse cx="146" cy="146" rx="12" ry="7" fill="#ffb3c7"/>
+  <!-- くち -->
+  <path d="M92 144 Q100 152 108 144" fill="none" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+  <!-- スカーフ -->
+  <path d="M46 168 Q100 186 154 168 L156 182 Q100 200 44 182 Z" fill="#ffc000" stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M136 180 L158 210 L140 212 L126 186 Z" fill="#ffc000" stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round"/>
+  <!-- 星のバッジ -->
+  <path d="M100 172 L104 180 L113 181 L106 187 L108 196 L100 191 L92 196 L94 187 L87 181 L96 180 Z" fill="#fff" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+</svg>

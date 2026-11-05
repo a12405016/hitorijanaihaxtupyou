@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>スライド</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    body { display: flex; align-items: center; justify-content: center; font-family: 'Zen Maru Gothic', sans-serif; }
+    body.idle { cursor: none; }
+    canvas { display: block; }
+    #overlay {
+      position: fixed; inset: 0; display: flex; flex-direction: column; gap: 18px;
+      align-items: center; justify-content: center; text-align: center;
+      background: rgba(10, 16, 24, .92); color: #fff; padding: 16px;
+    }
+    #overlay[hidden] { display: none; }
+    #overlay p { margin: 0; line-height: 1.7; }
+    #fs {
+      font: inherit; font-size: 20px; padding: 14px 28px; border-radius: 999px;
+      border: 3px solid #111; background: #ffc000; color: #111; cursor: pointer;
+      box-shadow: 0 4px 0 #111;
+    }
+    #fs:active { transform: translateY(3px); box-shadow: 0 1px 0 #111; }
+    #wait { color: #9dc3e6; }
+  </style>
+</head>
+<body>
+  <canvas id="slide"></canvas>
+  <div id="overlay">
+    <p id="wait">発表者の画面とつないでいます…</p>
+    <p>この画面をプロジェクター側に移して、ボタンを押してください。</p>
+    <button id="fs" type="button">全画面にする</button>
+    <p style="font-size:13px;opacity:.7">全画面のあとも、矢印キーやクリッカーでスライドを送れます。</p>
+  </div>
+  <script type="module" src="js/audience.js"></script>
+</body>
+</html>
