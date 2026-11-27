@@ -4,10 +4,10 @@ import { BuddyBrain, MODELS, detectSigns } from './buddy-ai.js';
 
 const $ = (id) => document.getElementById(id);
 const DEFAULT_CHARA = 'img/a-chan.svg';
-const CHECK_EVERY_MS = 5000;   // 何秒ごとに不安のサインを見るか（8秒→5秒）
-const COOLDOWN_MS = 10000;     // 声かけの最短間隔（20秒→10秒）
-const SPEAK_SCORE = 0.15;      // このスコア以上で声をかける（0.3→0.15）
-const BUBBLE_MS = 10000;       // ふきだしを出しておく時間（6.5秒→10秒）
+const CHECK_EVERY_MS = 5000;   // 何秒ごとに不安のサインを見るか（5秒）
+const COOLDOWN_MS = 10000;     // 声かけの最短間隔（10秒）
+const SPEAK_SCORE = 0.15;      // このスコア以上で声をかける（0.15）
+const BUBBLE_MS = 10000;       // ふきだしを出しておく時間（10秒）
 
 // ふきだしを大きく・キャラを大きく跳ねさせる（style.cssを触らずに上書き）
 const boost = document.createElement('style');
@@ -16,7 +16,6 @@ boost.textContent = `
   .buddy img { width: 170px; max-height: 190px; }
   .buddy img.cheer { animation: bigHop .6s cubic-bezier(.3,1.6,.5,1) 3; }
   .bubble.pop { animation: pop .45s ease-out; }
-  .side { padding-bottom: 320px; }
   @keyframes bigHop {
     0% { transform: translateY(0) scale(1); }
     35% { transform: translateY(-36px) scale(1.12); }
@@ -259,7 +258,9 @@ async function enterPresenter() {
   reachedLast = deck.length === 1;
   $('setup').hidden = true;
   $('presenter').hidden = false;
+  startWarmBackground();
   document.title = '発表者ビュー｜ひとりじゃない発表';
+  buildPresenterSlides();
   await show();
 
   t0 = Date.now();
@@ -271,14 +272,43 @@ async function enterPresenter() {
   startSensors();
 }
 
+const presenterButtons = [];
+function buildPresenterSlides() {
+  const list = $('presenter-slides');
+  list.replaceChildren();
+  presenterButtons.length = 0;
+  deck.forEach((page, i) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'presenter-slide';
+    button.setAttribute('aria-label', `スライド ${i + 1}`);
+    const number = document.createElement('span');
+    number.className = 'no';
+    number.textContent = i + 1;
+    const thumbnail = document.createElement('canvas');
+    thumbnail.setAttribute('aria-hidden', 'true');
+    button.append(number, thumbnail);
+    button.onclick = () => { idx = i; show(); };
+    presenterButtons.push(button);
+    list.append(button);
+    renderPage(state.pdf, page, thumbnail, 200, 124).catch(console.error);
+  });
+}
+
 async function show() {
   const p = deck[idx];
   const stage = $('stage');
   renderPage(state.pdf, p, $('cur'), stage.clientWidth - 8, stage.clientHeight - 8);
-  const nextP = deck[idx + 1];
-  $('next').hidden = !nextP;
-  $('next-end').hidden = !!nextP;
-  if (nextP) renderPage(state.pdf, nextP, $('next'), 300, 150);
+  for (const [i, button] of presenterButtons.entries()) {
+    const active = i === idx;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  }
+  // Keep the upcoming slide visible before it is selected.
+  // Restore the current slide too when navigating back or jumping in the list.
+  (presenterButtons[idx + 1] || presenterButtons[idx])?.scrollIntoView({ block: 'nearest' });
+  presenterButtons[idx]?.scrollIntoView({ block: 'nearest' });
   $('memo').textContent = state.memos[p] || '';
   $('page-no').textContent = `${idx + 1} / ${deck.length}`;
   $('prev').disabled = idx === 0;
@@ -305,8 +335,10 @@ function handleKey(key) {
 
 addEventListener('keydown', (e) => {
   if ($('presenter').hidden) return;
-  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-  if ([' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Backspace'].includes(e.key)) e.preventDefault();
+  if (e.target.closest('textarea, input, select, [contenteditable="true"]')) return;
+  const arrow = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key);
+  if (!arrow && e.target.closest('button, summary')) return;
+  if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Backspace'].includes(e.key)) e.preventDefault();
   handleKey(e.key);
 });
 $('prev').onclick = () => go(-1);
@@ -405,6 +437,7 @@ function updateSensor(m, signs, score) {
 }
 
 function endPresentation() {
+  stopWarmBackground();
   clearInterval(timerId);
   clearInterval(checkId);
   voice?.stop(); gaze?.stop();
@@ -415,6 +448,7 @@ function endPresentation() {
   $('bubble').classList.add('hide');
   $('presenter').hidden = true;
   $('setup').hidden = false;
+  startWarmBackground();
   document.title = 'ひとりじゃない発表';
   setTimeout(() => alert(`おつかれさま！ ${state.charName}もずっと見てたよ。`), 50);
 }
@@ -422,3 +456,129 @@ function endPresentation() {
 addEventListener('beforeunload', () => {
   if (!$('presenter').hidden) channel.postMessage({ type: 'end' });
 });
+
+// Freely moving circles with wall and circle collision handling.
+let warmFrame = 0;
+function stopWarmBackground() {
+  cancelAnimationFrame(warmFrame);
+  warmFrame = 0;
+}
+function startWarmBackground() {
+  stopWarmBackground();
+  const layer = document.querySelector('.warm-background');
+  const orbs = [...layer.querySelectorAll('.warm-orb')];
+  const w = layer.clientWidth, h = layer.clientHeight;
+  const radius = Math.min(w, h) * .245;
+  const diameter = radius * 2;
+  const speed = Math.min(w, h) * .09;
+  const balls = [];
+  // Rejection sampling gives a new scattered starting arrangement each time.
+  for (let i = 0; i < orbs.length; i++) {
+    let point;
+    for (let attempt = 0; attempt < 1000; attempt++) {
+      const candidate = { x: radius + Math.random() * (w - diameter), y: radius + Math.random() * (h - diameter) };
+      if (balls.every(b => Math.hypot(b.x - candidate.x, b.y - candidate.y) >= diameter + 2)) {
+        point = candidate; break;
+      }
+    }
+    if (!point) {
+      // Retry the whole arrangement rather than reserving fixed territories.
+      startWarmBackground(); return;
+    }
+    const angle = Math.random() * Math.PI * 2;
+    const phase = Math.random() * Math.PI * 2;
+    balls.push({ ...point, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      radius: radius * (.87 + .13 * Math.sin(phase)), phase,
+      period: 22 + Math.random() * 24, turn: 1 + Math.random() * 3,
+      blur: 28 + Math.random() * 24, blurFrom: 28, blurTarget: 35 + Math.random() * 105,
+      blurElapsed: 0, blurDuration: 8 + Math.random() * 10 });
+    balls[i].blurFrom = balls[i].blur;
+    orbs[i].style.width = orbs[i].style.height = `${diameter}px`;
+  }
+  const paint = () => balls.forEach((b, i) => {
+    orbs[i].style.width = orbs[i].style.height = `${b.radius * 2}px`;
+    orbs[i].style.filter = `blur(${b.blur}px)`;
+    orbs[i].style.transform = `translate(${b.x - b.radius}px, ${b.y - b.radius}px)`;
+  });
+  paint();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let previous = performance.now();
+  let gentleProgress = 0;
+  function step(dt) {
+    const targetProgress = $('presenter').hidden ? 0 : (deck.length > 1 ? idx / (deck.length - 1) : 1);
+    gentleProgress += (targetProgress - gentleProgress) * (1 - Math.exp(-dt / 10));
+    if (Math.abs(targetProgress - gentleProgress) < .0001) gentleProgress = targetProgress;
+    for (const b of balls) {
+      b.blurElapsed += dt;
+      const progress = Math.min(1, b.blurElapsed / b.blurDuration);
+      const eased = progress * progress * (3 - 2 * progress);
+      b.blur = b.blurFrom + (b.blurTarget - b.blurFrom) * eased;
+      if (progress >= 1) {
+        b.blurFrom = b.blur;
+        b.blurTarget = 28 + Math.random() * 112;
+        b.blurElapsed = 0;
+        b.blurDuration = 8 + Math.random() * 10;
+      }
+      b.phase += dt * Math.PI * 2 / b.period;
+      const minimumScale = .74 + 2.26 * gentleProgress;
+      const wave = (Math.sin(b.phase) + 1) / 2;
+      const targetRadius = radius * (minimumScale + (3 - minimumScale) * wave);
+      b.radius += (targetRadius - b.radius) * (1 - Math.exp(-dt / 4));
+      b.turn -= dt;
+      if (b.turn <= 0) {
+        const a = Math.atan2(b.vy, b.vx) + (Math.random() - .5) * 1.5;
+        const v = speed * (.8 + Math.random() * .5);
+        b.vx = Math.cos(a) * v; b.vy = Math.sin(a) * v;
+        b.turn = 1.5 + Math.random() * 3;
+      }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+    }
+    // Several passes handle simultaneous contacts without letting circles merge.
+    for (let pass = 0; pass < 24; pass++) {
+      for (const b of balls) {
+        // Centers remain on screen, so even very large circles stay visible.
+        if (b.x < 0) { b.x = 0; b.vx = Math.abs(b.vx); }
+        if (b.x > w) { b.x = w; b.vx = -Math.abs(b.vx); }
+        if (b.y < 0) { b.y = 0; b.vy = Math.abs(b.vy); }
+        if (b.y > h) { b.y = h; b.vy = -Math.abs(b.vy); }
+      }
+      for (let i = 0; i < balls.length; i++) for (let j = i + 1; j < balls.length; j++) {
+        const a = balls[i], b = balls[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const distance = Math.hypot(dx, dy);
+        // Partial overlap is allowed; prevent complete containment or stacking.
+        const separation = Math.max(
+          Math.abs(a.radius - b.radius) + Math.min(a.radius, b.radius) * .25,
+          (a.radius + b.radius) * .4
+        );
+        if (distance >= separation) continue;
+        const nx = distance ? dx / distance : 1, ny = distance ? dy / distance : 0;
+        const push = (separation - distance) / 2;
+        a.x -= nx * push; a.y -= ny * push;
+        b.x += nx * push; b.y += ny * push;
+        const closing = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if (closing < 0) {
+          a.vx += closing * nx; a.vy += closing * ny;
+          b.vx -= closing * nx; b.vy -= closing * ny;
+        }
+      }
+    }
+  }
+  function frame(now) {
+    let elapsed = Math.min((now - previous) / 1000, .05);
+    previous = now;
+    while (elapsed > 0) { const dt = Math.min(elapsed, 1 / 120); step(dt); elapsed -= dt; }
+    paint();
+    warmFrame = requestAnimationFrame(frame);
+  }
+  warmFrame = requestAnimationFrame(frame);
+}
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+  startWarmBackground();
+});
+addEventListener('resize', () => {
+  startWarmBackground();
+});
+
+// Start the shared background immediately on the preparation screen.
+startWarmBackground();

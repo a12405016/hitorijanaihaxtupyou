@@ -185,3 +185,131 @@ input[type=checkbox] { accent-color: var(--yellow); width: 16px; height: 16px; }
 @media (prefers-reduced-motion: reduce) {
   .buddy img, .hero-buddy img, .buddy img.cheer { animation: none; }
 }
+
+/* Presenter layout: thumbnails at left, slide above the companion area. */
+.presenter {
+  grid-template-columns: clamp(200px, 20.5vw, 308px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 2fr) minmax(180px, 1fr);
+  gap: 0; padding: 0;
+}
+.presenter-sidebar {
+  grid-column: 1; grid-row: 1 / -1; min-width: 0; min-height: 0;
+  display: flex; flex-direction: column; gap: 12px; padding: 16px;
+  background: var(--night-2); border-right: 2px solid var(--ink);
+}
+.presenter-sidebar .timer { font-size: clamp(24px, 2.5vw, 38px); }
+.presenter-brand {
+  flex-shrink: 0; align-self: flex-start; width: 100%;
+  height: 96px; padding: 0; background: transparent;
+  overflow: hidden;
+}
+.presenter-brand img {
+  display: block; width: 100%; height: 100%; object-fit: contain;
+  mix-blend-mode: multiply;
+}
+.presenter-slides {
+  flex: 1; min-height: 0; overflow-y: auto; display: flex;
+  flex-direction: column; gap: 10px; padding: 4px 6px 8px 0;
+  scrollbar-gutter: stable;
+}
+.presenter-slide {
+  flex-shrink: 0; width: 100%; display: flex; align-items: flex-end;
+  justify-content: center; gap: 10px; padding: 10px;
+  font: inherit; font-weight: 900; color: var(--ink); cursor: pointer;
+  border: 2px solid #d6e4f2; border-radius: 16px; background: #f6faff;
+}
+.presenter-slide canvas {
+  display: block; max-width: calc(100% - 28px); height: auto !important;
+  border-radius: 8px; border: 1.5px solid #c9d6e3; background: #fff;
+}
+.presenter-slide.active { border-color: var(--yellow); box-shadow: inset 0 0 0 2px var(--yellow); }
+.presenter-slide:focus-visible, .presenter-tools summary:focus-visible {
+  outline: 3px solid var(--yellow); outline-offset: 2px;
+}
+.presenter-controls { display: flex; flex-direction: column; gap: 10px; }
+.presenter-controls .btn { padding: 8px 10px; font-size: 14px; }
+.presenter-controls .small-btns .btn { font-size: 12px; padding: 6px; }
+.presenter-tools { position: relative; font-size: 13px; }
+.presenter-tools summary { cursor: pointer; color: var(--sky); padding: 4px 0; }
+.presenter-tools[open] {
+  max-height: 35vh; overflow-y: auto;
+}
+.presenter-tools .memo { min-height: 60px; max-height: 140px; font-size: 14px; margin: 6px 0 10px; }
+.presenter-tools .sensor { margin-top: 10px; overflow-wrap: anywhere; }
+.presenter .stage { grid-column: 2; grid-row: 1; overflow: hidden; padding: 8px; }
+.presenter .buddy {
+  position: relative; inset: auto; grid-column: 2; grid-row: 2;
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: clamp(24px, 4vw, 64px); min-width: 0; min-height: 0;
+  padding: 20px clamp(24px, 5vw, 80px); z-index: 1;
+  background: var(--night-2); border-top: 2px solid var(--ink);
+}
+.presenter .buddy .bubble {
+  flex: 1; max-width: 760px; min-width: 0; max-height: 100%; overflow-wrap: anywhere;
+  margin: 0; font-size: clamp(18px, 2vw, 28px);
+  padding: clamp(14px, 2vw, 28px); line-height: 1.5;
+}
+.presenter .buddy .bubble::after {
+  right: -13px; bottom: auto; top: calc(50% - 9px);
+  transform: rotate(-45deg);
+}
+.presenter .buddy img {
+  flex-shrink: 0; width: clamp(110px, 17vw, 250px);
+  max-width: 30%; height: 100%; max-height: 260px; object-fit: contain;
+}
+@media (max-width: 700px) {
+  .presenter { grid-template-columns: 155px minmax(0, 1fr); grid-template-rows: minmax(0, 2fr) minmax(150px, 1fr); }
+  .presenter-sidebar { padding: 10px; gap: 8px; }
+  .presenter-sidebar .top-row { flex-wrap: wrap; gap: 4px; }
+  .presenter .buddy { gap: 16px; padding: 16px; }
+  .presenter .buddy img { width: 90px; max-width: 30%; }
+  .presenter-controls .ctrl-row { flex-wrap: wrap; }
+  .presenter-controls .btn { font-size: 12px; padding: 6px; }
+}
+
+/* A shared, very pale warm wash moves behind the entire presenter view. */
+.presenter { background: #fff6ee; color: var(--ink); isolation: isolate; }
+ .warm-background {
+  position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none;
+}
+.warm-orb {
+  position: absolute; left: 0; top: 0; width: 42vw; height: 42vw;
+  border-radius: 50%; will-change: transform, filter;
+  filter: blur(32px);
+  background: radial-gradient(ellipse closest-side, rgba(var(--orb-color), .58) 0%,
+    rgba(var(--orb-color), .33) 38%, rgba(var(--orb-color), .10) 70%,
+    rgba(var(--orb-color), 0) 100%);
+}
+.warm-red { --orb-color: 255, 155, 155; }
+.warm-orange { --orb-color: 255, 192, 126; }
+.warm-yellow { --orb-color: 255, 233, 143; }
+.warm-pink { --orb-color: 255, 174, 213; }
+.presenter-sidebar { background: transparent; border-right-color: rgba(26, 26, 26, .10); }
+.presenter .buddy { background: transparent; border-top-color: rgba(26, 26, 26, .10); }
+.presenter .page-no, .presenter-tools summary { color: var(--muted); }
+.presenter-controls .small-btns .btn {
+  color: var(--ink); border-color: #c9d6e3; background: rgba(255, 255, 255, .65);
+}
+.presenter-controls .small-btns .btn:hover { background: #fff8de; }
+.presenter-tools .memo { color: var(--ink); background: rgba(255, 255, 255, .72); }
+.presenter-tools .memo:empty::before { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .warm-orb { will-change: auto; }
+}
+
+/* Shared full-window background for setup and presenter screens. */
+body { background: #fff6ee; isolation: isolate; }
+body > .warm-background { position: fixed; inset: 0; z-index: -1; }
+.presenter { background: transparent; }
+#setup .paper { background-color: rgba(255, 255, 255, .38); }
+#setup .card { background: rgba(255, 255, 255, .88); }
+#setup .start-card { background: rgba(255, 251, 234, .90); }
+.setup-brand {
+  display: block; margin: 8px 0 0; padding: 0; background: none;
+  width: min(420px, 66vw); line-height: 0;
+}
+.setup-brand img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; }
+
+/* Clear title screen background and full-opacity logo */
+#setup .paper { background: transparent; }
+#setup .setup-brand img { opacity: 1; mix-blend-mode: normal; filter: none; }

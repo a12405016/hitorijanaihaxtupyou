@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,8 +10,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ひとりじゃない発表">
+  <meta name="twitter:description" content="前に立つのは、ひとり。それでも、あなたはひとりじゃない。発表者の手元にだけ、ちいさな味方を。">
+  <meta name="twitter:image" content="https://hitorijanai.github.io/img/a-chan.svg">
+  <meta property="og:title" content="ひとりじゃない発表">
+  <meta property="og:description" content="前に立つのは、ひとり。それでも、あなたはひとりじゃない。発表者の手元にだけ、ちいさな味方を。">
+  <meta property="og:image" content="https://hitorijanai.github.io/img/a-chan.svg">
+  <meta property="og:type" content="website">
 </head>
+
 <body>
+    <div class="warm-background" aria-hidden="true">
+      <span class="warm-orb warm-red"></span>
+      <span class="warm-orb warm-orange"></span>
+      <span class="warm-orb warm-yellow"></span>
+      <span class="warm-orb warm-pink"></span>
+    </div>
 
   <!-- ===================== 準備画面 ===================== -->
   <main id="setup" class="frame">
@@ -18,7 +34,7 @@
       <header class="hero">
         <div>
           <p class="eyebrow">発表者の手元にだけ、ちいさな味方を。</p>
-          <h1>ひとりじゃない発表</h1>
+          <h1 class="setup-brand"><img src="img/matie-logo.png" alt="Matie（メイティ）"></h1>
           <p class="lead">前に立つのは、ひとり。それでも、あなたはひとりじゃない。</p>
         </div>
         <div class="hero-buddy">
@@ -57,13 +73,17 @@
         <div class="ai-box">
           <label class="field model-field" id="model-field" hidden>AIの大きさ <select id="ai-model"></select></label>
           <p id="ai-status" class="ai-status">確認しています…</p>
-          <div class="progress"><div id="ai-progress"></div></div>
+          <div class="progress">
+            <div id="ai-progress"></div>
+          </div>
           <button class="btn" id="ai-load" type="button" hidden>AIをダウンロード（初回のみ・約1GB）</button>
         </div>
         <div class="checks">
           <label class="check"><input type="checkbox" id="opt-mic" checked> マイクで声の様子を見る（沈黙・声のゆれ）</label>
-          <label class="check"><input type="checkbox" id="opt-speech" checked> 話す速さと「えーと」を数える<small>音声はChromeの音声認識サービスに送られます</small></label>
-          <label class="check"><input type="checkbox" id="opt-cam" checked> カメラで目線を見る<small>映像はこのパソコンの中だけで処理し、保存も送信もしません</small></label>
+          <label class="check"><input type="checkbox" id="opt-speech" checked>
+            話す速さと「えーと」を数える<small>音声はChromeの音声認識サービスに送られます</small></label>
+          <label class="check"><input type="checkbox" id="opt-cam" checked>
+            カメラで目線を見る<small>映像はこのパソコンの中だけで処理し、保存も送信もしません</small></label>
         </div>
       </section>
 
@@ -77,42 +97,40 @@
 
   <!-- ===================== 発表者画面（手元） ===================== -->
   <main id="presenter" class="presenter" hidden>
-    <div class="stage" id="stage"><canvas id="cur"></canvas></div>
 
-    <aside class="side">
+    <aside class="presenter-sidebar" aria-label="スライド一覧と操作">
+      <div class="presenter-brand"><img src="img/matie-logo.png" alt="Matie（メイティ）"></div>
       <div class="top-row">
         <div id="timer" class="timer">00:00</div>
-        <div id="page-no" class="page-no"></div>
+        <div id="page-no" class="page-no" aria-live="polite"></div>
       </div>
-
-      <p class="label">つぎのスライド</p>
-      <div class="next-box">
-        <canvas id="next"></canvas>
-        <p id="next-end" class="next-end" hidden>これが最後のスライド</p>
+      <nav id="presenter-slides" class="presenter-slides" aria-label="スライドを選択"></nav>
+      <div class="presenter-controls">
+        <div class="ctrl-row">
+          <button class="btn" id="prev" type="button">← まえ</button>
+          <button class="btn primary" id="go-next" type="button">つぎ →</button>
+        </div>
+        <div class="ctrl-row small-btns">
+          <button class="btn ghost" id="reopen" type="button">聴衆用の画面</button>
+          <button class="btn ghost" id="end" type="button">終了</button>
+        </div>
+        <details class="presenter-tools">
+          <summary>メモ・センサー</summary>
+          <div id="memo" class="memo"></div>
+          <button class="btn ghost" id="sensor-toggle" type="button">センサー</button>
+          <pre id="sensor" class="sensor" hidden></pre>
+        </details>
       </div>
-
-      <p class="label">メモ</p>
-      <div id="memo" class="memo"></div>
-
-      <div class="ctrl-row">
-        <button class="btn" id="prev" type="button">← まえ</button>
-        <button class="btn primary" id="go-next" type="button">つぎ →</button>
-      </div>
-      <div class="ctrl-row small-btns">
-        <button class="btn ghost" id="reopen" type="button">聴衆用の画面</button>
-        <button class="btn ghost" id="sensor-toggle" type="button">センサー</button>
-        <button class="btn ghost" id="end" type="button">おわる</button>
-      </div>
-      <pre id="sensor" class="sensor" hidden></pre>
     </aside>
-
+    <div class="stage" id="stage"><canvas id="cur" aria-label="現在のスライド"></canvas></div>
     <div class="buddy" id="buddy">
-      <div id="bubble" class="bubble hide"></div>
-      <img id="chara" alt="">
+      <div id="bubble" class="bubble hide" role="status" aria-live="polite"></div>
+      <img id="chara" alt="応援キャラクター">
     </div>
     <video id="cam" playsinline muted hidden></video>
   </main>
 
   <script type="module" src="js/app.js"></script>
 </body>
+
 </html>
